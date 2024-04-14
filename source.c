@@ -1,16 +1,36 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+void removeChar(char string[95],char input, int* size){
+        int i;
+        for(i=0;i< *size;i++){
+                if(input==string[i]){
+                        for(i=i;i< *size;i++){
+                                string[i]=string[i+1];
+                        }
+                *size=*size-1;
+                }
+        }
+
+}
+
+
 
 int main(){
 	unsigned long long randValue;
 	unsigned long long urandValue;
 
 	int i, j, z;
-	int check, restartCounter, halfresetCounter;
+	int check;
 	
 	char array[95][95];
+	char remaining[95];
+	char remainingIteration[95];
+	int remainingIterationSize;
+	int remainingSize;
+
 	char decided;
 	char choice;
 
@@ -50,54 +70,52 @@ int main(){
 	}else{
 		writer = fopen("lookup.txt","w");
 		for(i=0;i<2048;i++){
-			fullreset:
-			for(z=0;z<95;z++){
-				strcpy(array[z],"");
-
-			} //clearing the array for checking
-
 			for(j=0;j<95;j++){
-				halfresetCounter=0;
-				halfreset:
-				strcpy(array[z],"");
+				remaining[95]='\0';
 				for(z=0;z<95;z++){
-				restartCounter=0;
-				restart:
+					remaining[z]='\n';
+				}
+				for(z=0;z<95;z++){
+					remainingSize=95;
+					softreset:
 					fread(&randValue, sizeof(randValue), 1, randReader);
-					fread(&urandValue, sizeof(urandValue), 1, urandReader);
-					randValue+=urandValue;
-
-					decided=(char)(randValue%95 +32); //fitting it into ascii again
-					printf("%i: %i :%i,%i: %c\t",restartCounter,i,j,z,decided);					
-					
-					if(restartCounter>95*95*(z*2+1)/(j/2+1) && j<89){
-						halfresetCounter++;
-						goto halfreset; //ensuring no soft locks
-					//}else if(halfresetCounter>95){
-					//	goto fullreset;
+					randValue=(randValue%95)+32;
+					for(check=0;check<z;check++){
+						if(randValue==remaining[check])goto softreset;
 					}
-					for(check=0;check<z-1;check++){
-						if(decided==array[j][check]){
-							restartCounter++;
-							goto restart;
-						}
-					} //checking for non repetition in horizontal line
-					
-					for(check=0;check<j-1;check++){
-						if(decided==array[check][z]){
-							restartCounter++;
-							goto restart;
-						}
+					remaining[z]=(char)randValue;
+				}
+				//true random array secured
+				
+				
+				for(z=0;z<95;z++){
+					//usleep(10000);
+					fread(&randValue, sizeof(randValue), 1, randReader);
+					for(check=0;check<z;check++){
+						removeChar(remaining,array[j][check],&remainingSize);
 					}
-					array[j][z]=decided;
+					remainingIterationSize=remainingSize;
+					for(check=0;check<remainingSize;check++){
+						printf("%c",remaining[check]);
+						remainingIteration[check]=remaining[check];
+					}
+					for(check=0;check<j;check++){
+                                                removeChar(remainingIteration,array[check][z],&remainingIterationSize);
+                                        }
+					printf("\n%llu\t%i:%i\t%i:%i:%i",randValue, remainingSize, remainingIterationSize, i,j,z);
+					if(remainingIterationSize!=0){randValue=randValue% remainingIterationSize;}else{randValue=0;}
+					array[j][z]=remaining[randValue];
 				}
 
 			}
 
+			printf("\n\n\n");
 			for(j=0;j<95;j++){
-				for(z=0;z<95;i++){
-					fprintf(writer, "%c", array[j][i]); //writing the array to file
+				for(z=0;z<95;z++){
+					printf("%i:%i\n",j,z);
+					fprintf(writer, "%c", array[j][z]); //writing the array to file
 				}
+				//printf("%i",i);
 				fprintf(writer, "\n");
 			}
 		}
