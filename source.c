@@ -112,6 +112,7 @@ int main(){
 					removeChar(remaining,array[j][z],&remainingSize);
 					fprintf(writer, "%c", array[j][z]); //writing the array to file
 				}
+				fprintf(writer, "\n"); //this makes more sense to me
 
 			}
 
@@ -122,7 +123,7 @@ int main(){
 			//		fprintf(writer, "%c", array[j][z]); //writing the array to file
 			//	}
 				//printf("%i",i);
-				fprintf(writer, "\n");
+				//fprintf(writer, "\n");
 			//}
 		}
 	}
